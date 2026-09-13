@@ -14,3 +14,14 @@
 .cxx
 local.properties
 .idea/
+
+# Local release/signing artefacts
+.release-work/
+*.apk
+*.apk.idsig
+keystore.jks
+*.jks
+*.p12
+*.pfx
+*.keystore
+*.pass

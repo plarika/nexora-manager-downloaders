@@ -24,28 +24,110 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
         with:
           cache-read-only: true
 
-      - name: Build unsigned release APK
+      - name: Secret and private-key scan
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git ls-files | grep -Eiq '(^|/).+\.(jks|p12|pfx|keystore|pass)$|(^|/)keystore\.jks$'; then
+            echo 'Tracked signing material or password file detected.' >&2
+            git ls-files | grep -Ei '(^|/).+\.(jks|p12|pfx|keystore|pass)$|(^|/)keystore\.jks$' >&2
+            exit 1
+          fi
+          if git grep -nI -E 'github_pat_[A-Za-z0-9_]{40,}|gh[pousr]_[A-Za-z0-9]{30,}|-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----' -- .; then
+            echo 'Potential secret/private key material detected in tracked files.' >&2
+            exit 1
+          fi
+
+      - name: Restore signing keystore
+        shell: bash
+        env:
+          KEYSTORE_BASE64: ${{ secrets.NEXORA_DOWNLOADERS_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.NEXORA_DOWNLOADERS_KEYSTORE_PASSWORD }}
+          KEYSTORE_ENTRY_ALIAS: ${{ secrets.NEXORA_DOWNLOADERS_KEY_ALIAS }}
+          KEYSTORE_ENTRY_PASSWORD: ${{ secrets.NEXORA_DOWNLOADERS_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          test -n "${KEYSTORE_BASE64:-}"
+          test -n "${KEYSTORE_PASSWORD:-}"
+          test -n "${KEYSTORE_ENTRY_ALIAS:-}"
+          test -n "${KEYSTORE_ENTRY_PASSWORD:-}"
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > keystore.p12
+          test -s keystore.p12
+          chmod 600 keystore.p12
+          keytool -importkeystore \
+            -srckeystore keystore.p12 \
+            -srcstoretype PKCS12 \
+            -srcstorepass "$KEYSTORE_PASSWORD" \
+            -srcalias "$KEYSTORE_ENTRY_ALIAS" \
+            -srckeypass "$KEYSTORE_ENTRY_PASSWORD" \
+            -destkeystore keystore.jks \
+            -deststoretype JKS \
+            -deststorepass "$KEYSTORE_PASSWORD" \
+            -destalias "$KEYSTORE_ENTRY_ALIAS" \
+            -destkeypass "$KEYSTORE_ENTRY_PASSWORD" \
+            -noprompt
+          test -s keystore.jks
+          chmod 600 keystore.jks
+
+      - name: Build signed release APK
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew assembleRelease --no-daemon
+          KEYSTORE_PASSWORD: ${{ secrets.NEXORA_DOWNLOADERS_KEYSTORE_PASSWORD }}
+          KEYSTORE_ENTRY_ALIAS: ${{ secrets.NEXORA_DOWNLOADERS_KEY_ALIAS }}
+          KEYSTORE_ENTRY_PASSWORD: ${{ secrets.NEXORA_DOWNLOADERS_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          test -n "${KEYSTORE_PASSWORD:-}"
+          test -n "${KEYSTORE_ENTRY_ALIAS:-}"
+          test -n "${KEYSTORE_ENTRY_PASSWORD:-}"
+          ./gradlew clean assembleRelease --no-daemon
 
-      - name: Verify APK archive
+      - name: Verify APK archive, identity and signer
         shell: bash
         run: |
           set -euo pipefail
           apk="build/outputs/apk/release/nexora-manager-downloaders-1.2.0-nexora.1.apk"
+          expected_fingerprint="970138a6448b807f620fa89321c3ff34c48cbaccc2c24043373e7a4185ff7fcb"
           test -f "$apk"
           unzip -t "$apk" >/dev/null
-          cp "$apk" "build/outputs/apk/release/nexora-manager-downloaders-1.2.0-nexora.1-unsigned.apk"
 
-      - name: Upload unsigned APK
+          apksigner="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          aapt="$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -n 1)"
+          test -x "$apksigner"
+          test -x "$aapt"
+
+          "$apksigner" verify --verbose "$apk"
+          actual_fingerprint="$($apksigner verify --print-certs "$apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -n 1 | tr '[:upper:]' '[:lower:]' | tr -d ':[:space:]')"
+          test "$actual_fingerprint" = "$expected_fingerprint"
+
+          badging="$($aapt dump badging "$apk" | head -n 1)"
+          grep -Fq "package: name='com.nexora.manager.downloaders'" <<<"$badging"
+          grep -Fq "versionName='1.2.0-nexora.1'" <<<"$badging"
+
+      - name: Compute SHA-256
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="build/outputs/apk/release/nexora-manager-downloaders-1.2.0-nexora.1.apk"
+          sha256sum "$apk" | tee "$apk.sha256"
+
+      - name: Remove signing keystore
+        if: always()
+        shell: bash
+        run: rm -f keystore.jks keystore.p12
+
+      - name: Upload signed APK
+        if: success()
         uses: actions/upload-artifact@v7
         with:
-          name: nexora-manager-downloaders-1.2.0-nexora.1-unsigned
-          path: build/outputs/apk/release/nexora-manager-downloaders-1.2.0-nexora.1-unsigned.apk
+          name: nexora-manager-downloaders-1.2.0-nexora.1
+          path: |
+            build/outputs/apk/release/nexora-manager-downloaders-1.2.0-nexora.1.apk
+            build/outputs/apk/release/nexora-manager-downloaders-1.2.0-nexora.1.apk.sha256
           archive: false
