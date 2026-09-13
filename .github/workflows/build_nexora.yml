@@ -103,12 +103,23 @@ jobs:
           test -x "$aapt"
 
           "$apksigner" verify --verbose "$apk"
-          actual_fingerprint="$($apksigner verify --print-certs "$apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -n 1 | tr '[:upper:]' '[:lower:]' | tr -d ':[:space:]')"
-          test "$actual_fingerprint" = "$expected_fingerprint"
+          certs="$("$apksigner" verify --print-certs "$apk")"
+          actual_fingerprint="$(printf '%s\n' "$certs" | awk -F': ' '/Signer #1 certificate SHA-256 digest:/ {print $2; exit}' | tr '[:upper:]' '[:lower:]' | tr -d ':[:space:]')"
+          echo "Signer SHA-256: $actual_fingerprint"
+          if [[ -z "$actual_fingerprint" ]]; then
+            echo 'Could not extract APK signer SHA-256 fingerprint.' >&2
+            printf '%s\n' "$certs" >&2
+            exit 1
+          fi
+          if [[ "$actual_fingerprint" != "$expected_fingerprint" ]]; then
+            echo "Unexpected APK signer fingerprint: $actual_fingerprint" >&2
+            exit 1
+          fi
 
           badging="$($aapt dump badging "$apk" | head -n 1)"
-          grep -Fq "package: name='com.nexora.manager.downloaders'" <<<"$badging"
-          grep -Fq "versionName='1.2.0-nexora.1'" <<<"$badging"
+          echo "$badging"
+          grep -Fq "package: name='com.nexora.manager.downloaders'" <<<"$badging" || { echo 'Unexpected APK package name.' >&2; exit 1; }
+          grep -Fq "versionName='1.2.0-nexora.1'" <<<"$badging" || { echo 'Unexpected APK versionName.' >&2; exit 1; }
 
       - name: Compute SHA-256
         shell: bash
