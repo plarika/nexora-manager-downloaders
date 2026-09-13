@@ -141,4 +141,3 @@ jobs:
           path: |
             build/outputs/apk/release/nexora-manager-downloaders-1.2.0-nexora.1.apk
             build/outputs/apk/release/nexora-manager-downloaders-1.2.0-nexora.1.apk.sha256
-          archive: false
