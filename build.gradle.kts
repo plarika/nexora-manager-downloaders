@@ -26,7 +26,7 @@ repositories {
 }
 
 android {
-    val packageName = "app.revanced.manager.downloaders"
+    val packageName = "com.nexora.manager.downloaders"
     namespace = packageName
     defaultConfig {
         applicationId = packageName
@@ -49,17 +49,14 @@ android {
             )
 
             val keystoreFile = file("${rootDir}/keystore.jks")
-            signingConfig =
-                if (keystoreFile.exists()) {
-                    signingConfigs.create("release") {
-                        storeFile = keystoreFile
-                        storePassword = System.getenv("KEYSTORE_PASSWORD")
-                        keyAlias = System.getenv("KEYSTORE_ENTRY_ALIAS")
-                        keyPassword = System.getenv("KEYSTORE_ENTRY_PASSWORD")
-                    }
-                } else {
-                    signingConfigs.getByName("debug")
+            if (keystoreFile.exists()) {
+                signingConfig = signingConfigs.create("release") {
+                    storeFile = keystoreFile
+                    storePassword = System.getenv("KEYSTORE_PASSWORD")
+                    keyAlias = System.getenv("KEYSTORE_ENTRY_ALIAS")
+                    keyPassword = System.getenv("KEYSTORE_ENTRY_PASSWORD")
                 }
+            }
         }
     }
 
@@ -71,7 +68,7 @@ android {
     applicationVariants.all {
         outputs.all {
             this as ApkVariantOutputImpl
-            outputFileName = "revanced-manager-downloaders-$version.apk"
+            outputFileName = "nexora-manager-downloaders-$version.apk"
         }
     }
 }
@@ -103,7 +100,7 @@ tasks.register("assembleReleaseSignApk") {
     dependsOn("assembleRelease")
 
     val apk =
-        layout.buildDirectory.file("outputs/apk/release/revanced-manager-downloaders-$version.apk")
+        layout.buildDirectory.file("outputs/apk/release/nexora-manager-downloaders-$version.apk")
 
     inputs.file(apk).withPropertyName("input")
     outputs.file(apk.map { it.asFile.resolveSibling("${it.asFile.name}.asc") })

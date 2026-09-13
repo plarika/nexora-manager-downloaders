@@ -1,4 +1,4 @@
-package app.revanced.manager.downloaders.play.store.ui
+package com.nexora.manager.downloaders.play.store.ui
 
 import android.app.Activity.RESULT_FIRST_USER
 import android.content.Context

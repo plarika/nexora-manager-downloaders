@@ -1,4 +1,4 @@
-package app.revanced.manager.downloaders.play.store.ui
+package com.nexora.manager.downloaders.play.store.ui
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -11,10 +11,10 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import app.revanced.manager.downloaders.play.store.LOG_TAG
-import app.revanced.manager.downloaders.play.store.data.Credentials
-import app.revanced.manager.downloaders.play.store.data.Http
-import app.revanced.manager.downloaders.play.store.data.PropertiesProvider
+import com.nexora.manager.downloaders.play.store.LOG_TAG
+import com.nexora.manager.downloaders.play.store.data.Credentials
+import com.nexora.manager.downloaders.play.store.data.Http
+import com.nexora.manager.downloaders.play.store.data.PropertiesProvider
 import com.aurora.gplayapi.helpers.AuthHelper
 import io.ktor.client.request.headers
 import io.ktor.client.request.post

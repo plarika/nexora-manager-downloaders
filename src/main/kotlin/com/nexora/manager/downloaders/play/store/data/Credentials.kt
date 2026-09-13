@@ -1,4 +1,4 @@
-package app.revanced.manager.downloaders.play.store.data
+package com.nexora.manager.downloaders.play.store.data
 
 import android.os.Parcelable
 import com.aurora.gplayapi.helpers.AuthHelper

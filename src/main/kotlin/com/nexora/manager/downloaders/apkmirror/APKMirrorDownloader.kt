@@ -1,14 +1,14 @@
 @file:Suppress("Unused")
 
-package app.revanced.manager.downloaders.apkmirror
+package com.nexora.manager.downloaders.apkmirror
 
 import android.net.Uri
 import app.revanced.manager.downloader.DownloadUrl
 import app.revanced.manager.downloader.Downloader
 import app.revanced.manager.downloader.download
 import app.revanced.manager.downloader.webview.runWebView
-import app.revanced.manager.downloaders.R
-import app.revanced.manager.downloaders.shared.Merger
+import com.nexora.manager.downloaders.R
+import com.nexora.manager.downloaders.shared.Merger
 import java.net.URI
 import java.nio.file.Files
 import java.util.UUID

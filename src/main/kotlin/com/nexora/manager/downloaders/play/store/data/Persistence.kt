@@ -1,4 +1,4 @@
-package app.revanced.manager.downloaders.play.store.data
+package com.nexora.manager.downloaders.play.store.data
 
 import org.json.JSONObject
 import java.io.InputStream

@@ -1,4 +1,4 @@
-package app.revanced.manager.downloaders.play.store.data
+package com.nexora.manager.downloaders.play.store.data
 
 import com.aurora.gplayapi.data.models.PlayResponse
 import com.aurora.gplayapi.network.IHttpClient

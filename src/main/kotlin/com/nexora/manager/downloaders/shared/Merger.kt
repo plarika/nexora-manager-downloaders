@@ -1,4 +1,4 @@
-package app.revanced.manager.downloaders.shared
+package com.nexora.manager.downloaders.shared
 
 import android.util.Log
 import com.reandroid.apk.APKLogger

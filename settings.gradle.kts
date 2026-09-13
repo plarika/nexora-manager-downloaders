@@ -1,4 +1,4 @@
-rootProject.name = "revanced-manager-downloaders"
+rootProject.name = "nexora-manager-downloaders"
 
 pluginManagement {
     repositories {

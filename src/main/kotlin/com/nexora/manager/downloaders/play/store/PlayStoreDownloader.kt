@@ -1,15 +1,15 @@
-package app.revanced.manager.downloaders.play.store
+package com.nexora.manager.downloaders.play.store
 
 import android.os.Parcelable
 import android.util.Log
 import app.revanced.manager.downloader.*
-import app.revanced.manager.downloaders.shared.Merger
-import app.revanced.manager.downloaders.R
-import app.revanced.manager.downloaders.play.store.data.Credentials
-import app.revanced.manager.downloaders.play.store.data.Http
-import app.revanced.manager.downloaders.play.store.data.loadData
-import app.revanced.manager.downloaders.play.store.data.saveData
-import app.revanced.manager.downloaders.play.store.ui.AuthFragment
+import com.nexora.manager.downloaders.shared.Merger
+import com.nexora.manager.downloaders.R
+import com.nexora.manager.downloaders.play.store.data.Credentials
+import com.nexora.manager.downloaders.play.store.data.Http
+import com.nexora.manager.downloaders.play.store.data.loadData
+import com.nexora.manager.downloaders.play.store.data.saveData
+import com.nexora.manager.downloaders.play.store.ui.AuthFragment
 import com.aurora.gplayapi.data.models.PlayFile
 import com.aurora.gplayapi.helpers.AppDetailsHelper
 import com.aurora.gplayapi.helpers.PurchaseHelper
